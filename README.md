@@ -4,7 +4,7 @@ Those are examples about setting up your own STUN/TURN server.
 
 Running them requires [Vagrant](https://www.vagrantup.com/) & [VirtualBox](https://www.virtualbox.org/).
 
-Optionaly you can `vagrant plugin install vagrant-hostmanager`, it'll add the instance as "turn" in your host file.
+Optionaly you can `vagrant plugin install vagrant-hostmanager`, it'll ask password like sudo to add the instance as "turn" in your host file.
 
 ## Bash setup
 
