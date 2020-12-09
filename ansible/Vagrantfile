@@ -1,0 +1,47 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$provisioning = <<-PROVISIONING
+
+# Don't validate Github to avoid the prompt
+sudo apt-get update -qq
+sudo apt-get install -yqq coreutils # tee
+sudo mkdir -p /root/.ssh/
+sudo chown 0700 /root/.ssh/
+cat <<SSHCONFIG | sudo tee /root/.ssh/config
+Host github.com
+  StrictHostKeyChecking no
+SSHCONFIG
+
+PROVISIONING
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "generic/debian10"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "2048"
+    vb.cpus = "2"
+  end
+
+  config.vm.provider "libvirt" do |libvirt|
+    libvirt.memory = "2048"
+    libvirt.cpus = "2"
+  end
+
+  config.vm.hostname = 'turn'
+  if Vagrant.has_plugin?("vagrant-hostmanager")
+    config.hostmanager.enabled = true
+    config.hostmanager.manage_host = true
+    config.hostmanager.manage_guest = true
+    config.hostmanager.ignore_private_ip = false
+    config.hostmanager.include_offline = true
+  end
+
+  config.vm.synced_folder ".", "/vagrant"
+  config.vm.provision "shell", inline: $provisioning
+  config.vm.provision "ansible_local" do |ansible|
+    ansible.verbose = true
+    ansible.galaxy_role_file = "/vagrant/requirements.yml"
+    ansible.playbook = "/vagrant/playbook.yml"
+  end
+end

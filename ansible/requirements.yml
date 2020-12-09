@@ -1,0 +1,8 @@
+---
+- name: wazo.metadata
+  scm: git
+  src: https://github.com/wazo-platform/ansible-role-metadata.git
+
+- name: wazo.coturn
+  scm: git
+  src: https://github.com/wazo-platform/ansible-role-coturn.git

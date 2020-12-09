@@ -1,0 +1,22 @@
+---
+- hosts: all
+  become: true
+  become_user: root
+
+  vars:
+    coturn_user: root
+    coturn_group: root
+    coturn_auth_mechanism: long-term
+    coturn_users:
+      - username: turnuser
+        password: turnpassword
+    coturn_realm: turnrealm
+    coturn_alternative_listening_port: 80
+    coturn_tls_enabled: false
+    coturn_dtls_enabled: false
+    coturn_tls_alternative_listening_port: 443
+    coturn_web_admin_enabled: false
+    coturn_web_admin_ip: 0.0.0.0
+
+  roles:
+    - role: wazo.coturn
