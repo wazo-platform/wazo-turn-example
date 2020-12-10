@@ -11,7 +11,7 @@ Optionaly you can `vagrant plugin install vagrant-hostmanager`, it'll ask passwo
 Vagrant will start the virtual machine, then run the `setup.sh` script
 
 ```
-cd manual
+cd bash
 vagrant up
 ```
 
