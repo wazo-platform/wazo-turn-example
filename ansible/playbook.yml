@@ -4,6 +4,7 @@
   become_user: root
 
   vars:
+    consul_enabled: false
     coturn_user: root
     coturn_group: root
     coturn_auth_mechanism: long-term
@@ -15,8 +16,6 @@
     coturn_tls_enabled: false
     coturn_dtls_enabled: false
     coturn_tls_alternative_listening_port: 443
-    coturn_web_admin_enabled: false
-    coturn_web_admin_ip: 0.0.0.0
 
   roles:
     - role: wazo.coturn
