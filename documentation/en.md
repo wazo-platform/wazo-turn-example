@@ -103,7 +103,40 @@ coturn_users:
     password: turnpassword2
 ```
 
-## Xirsys SaaS
+## External providers
 
+Here you have quickstarts about TURN SaaS.
 
-https://global.xirsys.net/dashboard/signup
+### Xirsys
+
+[Xirsys](https://xirsys.com/) is a "Global TURN server infrastructure for powering WebRTC applications and services". They provide a global service, free STUN, and a [free plan](https://global.xirsys.net/dashboard/plans) including 500 MB bandwidth for TURN.
+
+- Create yourself an account: https://global.xirsys.net/dashboard/signup
+- Once connected, in the landing page create your first "channel"
+- Then go in your dashboard [Services](https://global.xirsys.net/dashboard/services) tab
+- For the newly created "channel", click on the "Static TURN credentials" button, then the "+" button
+- You'll then have your credentials, in a JSON like format looking like this
+  ```json
+  iceServers: [
+      {
+          urls: [
+              "stun:eu-turn1.xirsys.com"
+          ]
+      },
+      {
+          username: "HwvzUONJFefuOB70FAAAAAAAAAAAAABBBBBBBBBBBBBCCCCCCCCCCCCCDDDDDDDDDZ2FycmlndWU=",
+          credential: "40381e6c-0000-aaaa-1111-bbbb2222cccc",
+          urls: [
+              "turn:eu-turn1.xirsys.com:80?transport=udp",
+              "turn:eu-turn1.xirsys.com:3478?transport=udp",
+              "turn:eu-turn1.xirsys.com:80?transport=tcp",
+              "turn:eu-turn1.xirsys.com:3478?transport=tcp",
+              "turns:eu-turn1.xirsys.com:443?transport=tcp",
+              "turns:eu-turn1.xirsys.com:5349?transport=tcp"
+          ]
+      }
+  ]
+  ```
+- Then you can have to configure your Platform with those.
+
+Note, you can check your usage in the dashboard [Analytics](https://global.xirsys.net/dashboard/analytics), usage alerts are also available. And here's their own [get started documentation](https://docs.xirsys.com/?pg=get-started).
