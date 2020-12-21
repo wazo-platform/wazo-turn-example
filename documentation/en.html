@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Get your own STUN/TURN service running</title>
+        <style>
+</style>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="get-your-own-stunturn-service-running">Get your own STUN/TURN service running</h1>
+<p>This documentation is about getting your own STUN/TURN service running, either &quot;on premise&quot;, in your infrastructure. Or through an external specialized provider.</p>
+<h2 id="on-premise">On premise</h2>
+<p>In the following we'll setup <a href="https://github.com/coturn/coturn">Coturn</a>, a FOSS TURN server.</p>
+<p>This can be a first step to diagnose issues then move on to a SaaS as explained in the second part. Or a permanent solution.</p>
+<h3 id="requirements">Requirements</h3>
+<p>To get started, you can setup a Debian 10 &quot;buster&quot; server with</p>
+<ul>
+<li>1 CPU</li>
+<li>1 GB RAM</li>
+<li>8 GB disk mounted on /</li>
+</ul>
+<p>The required Network bandwidth depends a lot on the intended usage. For STUN only, a basic connection is good enough. For TURN you'll need a good one, as much as the traffic going through the TURN server.</p>
+<p>Latency is of utmost importance, so make sure to set up your server close to your end users.</p>
+<p>Network security wise, with the default Coturn values you'll need the following ports</p>
+<ul>
+<li>3478 TCP and UDP: TURN listener port</li>
+<li>5349 TCP and UDP: TURN listener port for TLS and DTLS</li>
+<li>3479 TCP and UDP: alternative TURN listener port</li>
+<li>5350 TCP and UDP: alternative TURN listener port for TLS and DTLS</li>
+<li>9641 TCP: Prometheus metrics, requires <a href="https://github.com/coturn/coturn/milestone/2">Coturn 4.5.2</a> yet to be released</li>
+<li>9090 TCP: for the web admin UI if you want to enable it, which is very optional</li>
+<li>49152 to 65535 UDP: relay endpoints range</li>
+</ul>
+<p>Those value can be changed, for example you can set up the alternate ports to 80 &amp; 443 and reduce the relay endpoints range.</p>
+<h3 id="coturn-setup">Coturn setup</h3>
+<p>Shortly explained, you've to install Coturn with <code>apt install coturn</code>, configure it in <code>/etc/turnserver.conf</code>, then (re)start the service <code>systemctl restart coturn</code>.</p>
+<p>Instead of documenting the setup here, we provide two examples in <a href="https://github.com/wazo-platform/turn_server_example">this repository</a>:</p>
+<ul>
+<li>A bash based setup, you can follow the commands in <code>bash/setup.sh</code> to set up Coturn manually.</li>
+<li>An Ansible based setup. Have a look at <code>ansible/requirements.yml</code> for the required roles, <code>ansible/playbook.yml</code> for an example playbook. Have a look in <a href="https://github.com/wazo-platform/ansible-role-coturn/blob/main/defaults/main.yml">Coturn role defaults</a> for all the available variables.</li>
+</ul>
+<p>Note that Coturn <code>/etc/turnserver.conf</code> configuration file is extensively commented and you can ask questions <a href="https://github.com/coturn/coturn/issues">opening an issue in Github</a>.</p>
+<h3 id="enable-tlsdtls">Enable TLS/DTLS</h3>
+<p>To enable TLS and DTLS on your Coturn server, you have to set up your own certificate on the server.</p>
+<p>That won't be explained in details here, but you can <a href="https://certbot.eff.org/lets-encrypt/debianbuster-other">use certbot to get a certificate from let's encrypt</a>. Here is <a href="https://github.com/geerlingguy/ansible-role-certbot">geerlingguy.certbot</a>, a good Ansible role to automate that.</p>
+<p>Once the certificate &amp; private key, update the configuration in <code>/etc/turnserver.conf</code>.</p>
+<pre><code class="language-bash"><div><span class="hljs-comment"># Make sure to comment those</span>
+<span class="hljs-comment">#no-tls</span>
+<span class="hljs-comment">#no-dtls</span>
+<span class="hljs-comment"># Enforce safer cipher</span>
+cipher-list=<span class="hljs-string">"ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:!ADH:!AECDH:!MD5"</span>
+<span class="hljs-comment"># Specify the path to your public certificate fullchain &amp; private key</span>
+cert=/etc/letsencrypt/live/&lt;your_fqdn&gt;/fullchain.pem
+pkey=/etc/letsencrypt/live/&lt;your_fqdn&gt;/privkey.pem
+<span class="hljs-comment"># Allow TLS 1.3 only</span>
+no-tlsv1
+no-tlsv1_1
+no-tlsv1_2
+</div></code></pre>
+<p>And <code>systemctl restart coturn</code>.</p>
+<p>If you're using our Ansible role, change <a href="https://github.com/wazo-platform/ansible-role-coturn/blob/main/defaults/main.yml#L85-L97">the related variables</a></p>
+<pre><code class="language-yaml"><div><span class="hljs-attr">coturn_tls_enabled:</span> <span class="hljs-literal">true</span>
+<span class="hljs-attr">coturn_dtls_enabled:</span> <span class="hljs-literal">true</span>
+<span class="hljs-attr">coturn_tls_cert:</span> <span class="hljs-string">/etc/letsencrypt/live/&lt;your_fqdn&gt;.cloud/fullchain.pem</span>
+<span class="hljs-attr">coturn_tls_key:</span> <span class="hljs-string">/etc/letsencrypt/live/&lt;your_fqdn&gt;.cloud/privkey.pem</span>
+</div></code></pre>
+<h3 id="authenticated-turn">Authenticated TURN</h3>
+<p>The access to the TURN server is unauthenticated by default.</p>
+<p>You can enable a simple authentification, with users defined in the configuration <code>/etc/turnserver.conf</code> file:</p>
+<pre><code><code><div>lt-cred-mech
+user=turnuser:turnuserpassword
+user=turnuser2:turnuserpassword2
+</div></code></code></pre>
+<p>And <code>systemctl restart coturn</code></p>
+<p>Read the configuration file's comments to know how to replace the cleartext password by a hash, or rely on a database, or oauth.</p>
+<p>For our Ansible role, add those variables</p>
+<pre><code class="language-yaml"><div><span class="hljs-attr">coturn_users:</span>
+<span class="hljs-attr">  - login:</span> <span class="hljs-string">turnuser</span>
+<span class="hljs-attr">    password:</span> <span class="hljs-string">turnpassword</span>
+<span class="hljs-attr">  - login:</span> <span class="hljs-string">turnuser2</span>
+<span class="hljs-attr">    password:</span> <span class="hljs-string">turnpassword2</span>
+</div></code></pre>
+<h2 id="external-providers">External providers</h2>
+<p>Here you have quickstarts about TURN SaaS.</p>
+<h3 id="xirsys">Xirsys</h3>
+<p><a href="https://xirsys.com/">Xirsys</a> is a &quot;Global TURN server infrastructure for powering WebRTC applications and services&quot;. They provide a global service, free STUN, and a <a href="https://global.xirsys.net/dashboard/plans">free plan</a> including 500 MB bandwidth for TURN.</p>
+<ul>
+<li>Create yourself an account: <a href="https://global.xirsys.net/dashboard/signup">https://global.xirsys.net/dashboard/signup</a></li>
+<li>Once connected, in the landing page create your first &quot;channel&quot;</li>
+<li>Then go in your dashboard <a href="https://global.xirsys.net/dashboard/services">Services</a> tab</li>
+<li>For the newly created &quot;channel&quot;, click on the &quot;Static TURN credentials&quot; button, then the &quot;+&quot; button</li>
+<li>You'll then have your credentials, in a JSON like format looking like this<pre><code class="language-json"><div>iceServers: [
+    {
+        urls: [
+            <span class="hljs-string">"stun:eu-turn1.xirsys.com"</span>
+        ]
+    },
+    {
+        username: <span class="hljs-string">"HwvzUONJFefuOB70FAAAAAAAAAAAAABBBBBBBBBBBBBCCCCCCCCCCCCCDDDDDDDDDZ2FycmlndWU="</span>,
+        credential: <span class="hljs-string">"40381e6c-0000-aaaa-1111-bbbb2222cccc"</span>,
+        urls: [
+            <span class="hljs-string">"turn:eu-turn1.xirsys.com:80?transport=udp"</span>,
+            <span class="hljs-string">"turn:eu-turn1.xirsys.com:3478?transport=udp"</span>,
+            <span class="hljs-string">"turn:eu-turn1.xirsys.com:80?transport=tcp"</span>,
+            <span class="hljs-string">"turn:eu-turn1.xirsys.com:3478?transport=tcp"</span>,
+            <span class="hljs-string">"turns:eu-turn1.xirsys.com:443?transport=tcp"</span>,
+            <span class="hljs-string">"turns:eu-turn1.xirsys.com:5349?transport=tcp"</span>
+        ]
+    }
+]
+</div></code></pre>
+</li>
+<li>Then you can have to configure your Platform with those.</li>
+</ul>
+<p>Note, you can check your usage in the dashboard <a href="https://global.xirsys.net/dashboard/analytics">Analytics</a>, usage alerts are also available. And here's their own <a href="https://docs.xirsys.com/?pg=get-started">get started documentation</a>.</p>
+
+    </body>
+    </html>
