@@ -50,7 +50,7 @@
 <p>Those value can be changed, for example you can set up the alternate ports to 80 &amp; 443 and reduce the relay endpoints range.</p>
 <h3 id="coturn-setup">Coturn setup</h3>
 <p>Shortly explained, you've to install Coturn with <code>apt install coturn</code>, configure it in <code>/etc/turnserver.conf</code>, then (re)start the service <code>systemctl restart coturn</code>.</p>
-<p>Instead of documenting the setup here, we provide two examples in <a href="https://github.com/wazo-platform/turn_server_example">this repository</a>:</p>
+<p>Instead of documenting the setup here, we provide two examples in <a href="https://github.com/wazo-platform/wazo-turn-example">this repository</a>:</p>
 <ul>
 <li>A bash based setup, you can follow the commands in <code>bash/setup.sh</code> to set up Coturn manually.</li>
 <li>An Ansible based setup. Have a look at <code>ansible/requirements.yml</code> for the required roles, <code>ansible/playbook.yml</code> for an example playbook. Have a look in <a href="https://github.com/wazo-platform/ansible-role-coturn/blob/main/defaults/main.yml">Coturn role defaults</a> for all the available variables.</li>

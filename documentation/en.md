@@ -36,7 +36,7 @@ Those value can be changed, for example you can set up the alternate ports to 80
 
 Shortly explained, you've to install Coturn with `apt install coturn`, configure it in `/etc/turnserver.conf`, then (re)start the service `systemctl restart coturn`.
 
-Instead of documenting the setup here, we provide two examples in [this repository](https://github.com/wazo-platform/turn_server_example):
+Instead of documenting the setup here, we provide two examples in [this repository](https://github.com/wazo-platform/wazo-turn-example):
 
 - A bash based setup, you can follow the commands in `bash/setup.sh` to set up Coturn manually.
 - An Ansible based setup. Have a look at `ansible/requirements.yml` for the required roles, `ansible/playbook.yml` for an example playbook. Have a look in [Coturn role defaults](https://github.com/wazo-platform/ansible-role-coturn/blob/main/defaults/main.yml) for all the available variables.
